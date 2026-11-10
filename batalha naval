@@ -1,0 +1,466 @@
+algoritmo "BatalhaNaval"
+
+var
+  navio: vetor[1..20,1..10] de inteiro
+  vis: vetor[1..20,1..10] de caractere
+  vida, muni, ori: vetor[1..6] de inteiro
+  dl, dc, toc: vetor[1..3] de inteiro
+  viv, tem: vetor[1..2] de inteiro
+
+  nome: vetor[1..6] de caractere
+  i, j, l, c, id, k, r, x, y: inteiro
+  nc, jog, adv, tp, oa, num, mv, dono, rod, vencedor: inteiro
+  maxo, pj, pt, ag, ac, a1, a2, a3, a4, mnl, mxl, mnc, mxc, sg: inteiro
+  tecla, txt, ch: caractere
+  valido, achou, acabou, semT: logico
+procedimento lerNum
+  inicio
+    leia(txt)
+    num <- 0
+    para k de 1 ate 10 faca
+      se txt = NumpCarac(k) entao
+        num <- k
+      fimse
+    fimpara
+fimprocedimento
+
+procedimento iniciar
+  inicio
+    para i de 1 ate 20 faca
+      para j de 1 ate 10 faca
+        navio[i,j] <- 0
+        vis[i,j] <- "~"
+      fimpara
+    fimpara
+    para i de 1 ate 2 faca
+      para j de 1 ate 3 faca
+        vida[(i-1)*3 + j] <- j
+        muni[(i-1)*3 + j] <- 9 - 2*j
+        ori[(i-1)*3 + j] <- 1
+      fimpara
+    fimpara
+fimprocedimento
+procedimento formato
+  inicio
+    dl[1] <- 0
+    dc[1] <- 0
+    nc <- tp
+    se tp = 2 entao
+      dl[2] <- oa - 1
+      dc[2] <- 2 - oa
+    fimse
+    se tp = 3 entao
+      sg <- 1
+      se (oa = 2) ou (oa = 4) ou (oa = 6) ou (oa = 8) entao
+        sg <- -1
+      fimse
+      se oa <= 4 entao
+        dl[2] <- 0
+        dl[3] <- sg
+        dc[2] <- 1
+        se oa > 2 entao
+          dc[2] <- -1
+        fimse
+        dc[3] <- dc[2]
+      senao
+        dc[2] <- 0
+        dc[3] <- sg
+        dl[2] <- 1
+        se oa > 6 entao
+          dl[2] <- -1
+        fimse
+        dl[3] <- dl[2]
+      fimse
+    fimse
+fimprocedimento
+procedimento desenharFormato
+  inicio
+    mnl <- 0
+    mxl <- 0
+    mnc <- 0
+    mxc <- 0
+    para a1 de 1 ate nc faca
+      se dl[a1] < mnl entao
+        mnl <- dl[a1]
+      fimse
+      se dl[a1] > mxl entao
+        mxl <- dl[a1]
+      fimse
+      se dc[a1] < mnc entao
+        mnc <- dc[a1]
+      fimse
+      se dc[a1] > mxc entao
+        mxc <- dc[a1]
+      fimse
+    fimpara
+    para a2 de mnl ate mxl faca
+      escreva("        ")
+      para a3 de mnc ate mxc faca
+        achou <- falso
+        para a4 de 1 ate nc faca
+          se (dl[a4] = a2) e (dc[a4] = a3) entao
+            achou <- verdadeiro
+          fimse
+        fimpara
+        se achou entao
+          se (a2 = 0) e (a3 = 0) entao
+            escreva("@ ")
+          senao
+            escreva("# ")
+          fimse
+        senao
+          escreva(". ")
+        fimse
+      fimpara
+      escreval("")
+    fimpara
+fimprocedimento
+procedimento checa
+  inicio
+    valido <- (l >= 1) e (c >= 1)
+    para k de 1 ate nc faca
+      x <- l + dl[k]
+      y <- c + dc[k]
+      se (x < 1) ou (x > 10) ou (y < 1) ou (y > 10) entao
+        valido <- falso
+      senao
+        se (mv = 2) e (navio[(dono-1)*10 + x, y] <> 0) entao
+          valido <- falso
+        fimse
+      fimse
+    fimpara
+fimprocedimento
+procedimento desenhar
+  inicio
+    escreval("")
+    escreval("      1  2  3  4  5  6  7  8  9  10")
+    para i de 1 ate 10 faca
+      se i < 10 entao
+        escreva("  ", i, " | ")
+      senao
+        escreva(" ", i, " | ")
+      fimse
+      r <- (dono-1)*10 + i
+      para j de 1 ate 10 faca
+        ch <- vis[r,j]
+        se (mv >= 1) e (navio[r,j] > 0) entao
+          ch <- "#"
+        fimse
+        se (mv = 2) e (navio[r,j] = 0) entao
+          l <- i
+          c <- j
+          checa
+          se valido entao
+            ch <- "+"
+          senao
+            ch <- "."
+          fimse
+        fimse
+        escreva(ch, "  ")
+      fimpara
+      escreval("|")
+    fimpara
+fimprocedimento
+
+procedimento posicionar
+  inicio
+    limpatela
+    escreval("CAPITÃO ", jog, ", hora de ancorar o ", nome[(jog-1)*3 + tp], "!")
+    escreval("")
+    maxo <- 1
+    se tp = 2 entao
+      maxo <- 2
+    fimse
+    se tp = 3 entao
+      maxo <- 8
+    fimse
+    oa <- 1
+    se maxo > 1 entao
+      escreval("Orientacoes possiveis (@ = primeira casa que voce vai escolher):")
+      para k de 1 ate maxo faca
+        oa <- k
+        se tp = 2 entao
+          se k = 1 entao
+            escreval("  Opcao 1: DEITADO (@ e mais uma casa para a direita)")
+          senao
+            escreval("  Opcao 2: EM PE (@ e mais uma casa para baixo)")
+          fimse
+        senao
+          escreval("  Opcao ", k, ":")
+        fimse
+        formato
+        desenharFormato
+      fimpara
+      repita
+        escreva("Escolha a orientacao (1-", maxo, ") e aperte ENTER: ")
+        lerNum
+        oa <- num
+        se (oa < 1) ou (oa > maxo) entao
+          escreval("Digite um numero de 1 a ", maxo, ".")
+        fimse
+      ate (oa >= 1) e (oa <= maxo)
+    fimse
+    formato
+    dono <- jog
+    mv <- 2
+    repita
+      escreval("")
+      escreval("+ = pode ser a primeira casa (@)  |  # = seu navio  |  . = indisponivel")
+      desenhar
+      escreva("Linha da primeira casa (1-10): ")
+      lerNum
+      l <- num
+      escreva("Coluna da primeira casa (1-10): ")
+      lerNum
+      c <- num
+      checa
+      se nao valido entao
+        escreval("Aí tem rocha, marujo! O navio não cabe aí. Escolha uma casa marcada com +.")
+      fimse
+    ate valido
+    para k de 1 ate nc faca
+      navio[(jog-1)*10 + l + dl[k], c + dc[k]] <- tp
+    fimpara
+    ori[(jog-1)*3 + tp] <- oa
+    escreval("Âncora lançada! Esse navio não sai mais daí. ENTER...")
+    leia(tecla)
+fimprocedimento
+procedimento posicionamento
+  inicio
+    para pj de 1 ate 2 faca
+      limpatela
+      escreval("CAPITÃO ", pj, ", prepare sua frota! O inimigo NÃO pode espiar!")
+      escreval("Navio ancorado não muda mais de lugar.")
+      escreval("Aperte ENTER para içar as velas")
+      leia(tecla)
+      para pt de 1 ate 3 faca
+        jog <- pj
+        tp <- pt
+        posicionar
+      fimpara
+      limpatela
+      escreval("Frota do Capitão ", pj, " pronta! Esconda a tela e passe o leme.")
+      escreval("ENTER...")
+      leia(tecla)
+    fimpara
+fimprocedimento
+procedimento atirar
+  inicio
+    adv <- 3 - jog
+    id <- (jog-1)*3 + tp
+    oa <- ori[id]
+    formato
+    muni[id] <- muni[id] - 1
+    ag <- 0
+    ac <- 0
+    para k de 1 ate 3 faca
+      toc[k] <- 0
+    fimpara
+    escreval("")
+    escreval("FOGO NOS CANHÕES! ATIREEEE!")
+    para k de 1 ate nc faca
+      r <- (adv-1)*10 + l + dl[k]
+      y <- c + dc[k]
+      se vis[r,y] = "~" entao
+        se navio[r,y] > 0 entao
+          vis[r,y] <- "X"
+          ac <- ac + 1
+          x <- navio[r,y]
+          toc[x] <- 1
+          vida[(adv-1)*3 + x] <- vida[(adv-1)*3 + x] - 1
+        senao
+          vis[r,y] <- "0"
+          ag <- ag + 1
+        fimse
+      fimse
+    fimpara
+    escreval("")
+    se (ac = 0) e (ag = 0) entao
+      escreval("HAHA Marujo de água doce, NÃO ATIRE NO MESMO LUGAR HAHA!")
+    fimse
+    se (ac = 0) e (ag > 0) entao
+      escreval("0 = água! Essa foi para os peixes... agora atire com os dois olhos abertos.")
+    fimse
+    para k de 1 ate 3 faca
+      se (toc[k] = 1) e (vida[(adv-1)*3 + k] = 0) entao
+        escreval("MALDIÇÃO, estamos afundando, SALVEM O RUM! DERRUBOU!")
+      fimse
+    fimpara
+    para k de 1 ate 3 faca
+      se (toc[k] = 1) e (vida[(adv-1)*3 + k] > 0) entao
+        se ag = 0 entao
+          escreval("Pelos dentes de Netuno! ACERTOU!")
+        senao
+          escreval("Pelos dentes de Netuno! ACERTOU PARCIALMENTE!")
+        fimse
+      fimse
+    fimpara
+fimprocedimento
+
+procedimento turno
+  inicio
+    adv <- 3 - jog
+    limpatela
+    escreval("VEZ DO CAPITÃO ", jog, " - rodada ", rod)
+    escreval("")
+    escreval("ÁGUAS INIMIGAS (0 = água, X = acerto, ~ = neblina):")
+    dono <- adv
+    mv <- 0
+    desenhar
+    escreval("")
+    escreval("SUA FROTA (# = seu navio, X/0 = tiros do inimigo):")
+    dono <- jog
+    mv <- 1
+    desenhar
+    escreval("")
+    escreval("Seus navios:")
+    para k de 1 ate 3 faca
+      se vida[(jog-1)*3 + k] > 0 entao
+        escreval("  ", k, " - ", nome[(jog-1)*3 + k], ": ", vida[(jog-1)*3 + k], " casa(s) viva(s), ", muni[(jog-1)*3 + k], " tiro(s)")
+      senao
+        escreval("  ", k, " - ", nome[(jog-1)*3 + k], ": NO FUNDO DO MAR (nao atira mais)")
+      fimse
+    fimpara
+    escreval("")
+    repita
+      escreva("Qual navio vai atirar? (1=", nome[(jog-1)*3 + 1], " 2=", nome[(jog-1)*3 + 2], " 3=", nome[(jog-1)*3 + 3], "): ")
+      lerNum
+      tp <- num
+      valido <- (tp >= 1) e (tp <= 3)
+      se valido entao
+        se vida[(jog-1)*3 + tp] = 0 entao
+          escreval("Esse navio já está com os peixes, marujo!")
+          valido <- falso
+        senao
+          se muni[(jog-1)*3 + tp] = 0 entao
+            escreval("Os canhões desse navio estão sem pólvora!")
+            valido <- falso
+          fimse
+        fimse
+      senao
+        escreval("Escolha 1, 2 ou 3.")
+      fimse
+    ate valido
+    oa <- ori[(jog-1)*3 + tp]
+    formato
+    escreval("Formato do tiro (@ = a primeira casa / ponto de partida):")
+    desenharFormato
+    mv <- 0
+    repita
+      escreva("Linha da primeira casa (1-10): ")
+      lerNum
+      l <- num
+      escreva("Coluna da primeira casa (1-10): ")
+      lerNum
+      c <- num
+      checa
+      se nao valido entao
+        escreval("Esse tiro vai cair fora do radar, marujo! Escolha outra casa.")
+      fimse
+    ate valido
+    atirar
+    escreval("")
+    escreval("ÁGUAS INIMIGAS DEPOIS DO ATAQUE:")
+    dono <- adv
+    mv <- 0
+    desenhar
+    escreval("")
+    escreval("ENTER para recolher os canhões...")
+    leia(tecla)
+fimprocedimento
+procedimento contar
+  inicio
+    para i de 1 ate 2 faca
+      viv[i] <- 0
+      tem[i] <- 0
+      para j de 1 ate 3 faca
+        se vida[(i-1)*3 + j] > 0 entao
+          viv[i] <- viv[i] + 1
+          se muni[(i-1)*3 + j] > 0 entao
+            tem[i] <- 1
+          fimse
+        fimse
+      fimpara
+    fimpara
+fimprocedimento
+
+procedimento batalha
+  inicio
+    acabou <- falso
+    vencedor <- 0
+    jog <- 1
+    enquanto nao acabou faca
+      adv <- 3 - jog
+      semT <- falso
+      contar
+      se tem[jog] = 1 entao
+        turno
+        contar
+        se viv[adv] = 0 entao
+          vencedor <- jog
+          acabou <- verdadeiro
+        fimse
+      senao
+        semT <- verdadeiro
+      fimse
+      se nao acabou entao
+        se (tem[1] = 0) e (tem[2] = 0) entao
+          acabou <- verdadeiro
+          se viv[1] > viv[2] entao
+            vencedor <- 1
+          fimse
+          se viv[2] > viv[1] entao
+            vencedor <- 2
+          fimse
+        senao
+          limpatela
+          se semT entao
+            escreval("O Capitão ", jog, " ficou sem pólvora e perdeu a vez.")
+          fimse
+          escreval("Passe o leme para o Capitão ", adv, " e aperte ENTER")
+          leia(tecla)
+        fimse
+      fimse
+      jog <- adv
+    fimenquanto
+fimprocedimento
+
+inicio
+  nome[1] <- "Bote do Zé"
+  nome[2] <- "Pérola Negra"
+  nome[3] <- "Rei dos Mares"
+  nome[4] <- "Canoa Furada"
+  nome[5] <- "Holandês Voador"
+  nome[6] <- "Fúria do Kraken"
+  limpatela
+  escreval("       BATALHA NAVAL")
+  escreval("Nos afunde se for capaz! Cada um tem 3 navios: de 1, 2 e 3 casas.")
+  escreval("Quem afundar todos os navios do inimigo vence a rodada.")
+  escreval("Boa sorte, Marujo de água doce !")
+  escreval("Aperte ENTER! para começar")
+  leia(tecla)
+  para rod de 1 ate 3 faca
+    iniciar
+    posicionamento
+    batalha
+    limpatela
+    escreval("FIM DA RODADA ", rod)
+    se vencedor = 0 entao
+      escreval("FOI UMA BOA JORNADA HAHA... Mas os tiros acabaram. Empatou!")
+    senao
+      escreval("O mar cobrou sua dívida! O Capitão ", vencedor, " venceu a rodada!")
+    fimse
+    escreval("Frota do Capitão 1:")
+    dono <- 1
+    mv <- 1
+    desenhar
+    escreval("Frota do Capitão 2:")
+    dono <- 2
+    mv <- 1
+    desenhar
+    escreval("Aperte ENTER para continuar")
+    leia(tecla)
+  fimpara
+  limpatela
+  escreval("Fim da batalha! Recolham as velas, marujos.")
+fimalgoritmo
